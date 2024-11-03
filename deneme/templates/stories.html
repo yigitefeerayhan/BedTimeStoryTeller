@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hikayeler</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #ff7e5f, #feb47b); /* Canlı renkler */
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.95); /* Beyaz arka plan, %95 opak */
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            font-family: 'Cursive', cursive;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        a {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background-color: #ff6f61; /* Kırmızı tonlarda bir renk */
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        a:hover {
+            background-color: #e05244; /* Daha koyu bir kırmızı */
+            transform: scale(1.05);
+        }
+
+        .story {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .story:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .story h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.8em;
+            font-family: 'Cursive', cursive;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .story p {
+            color: #555;
+            display: none;
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        .toggle-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff6f61; /* Kırmızı tonlarda bir renk */
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .toggle-button:hover {
+            background-color: #e05244; /* Daha koyu bir kırmızı */
+            transform: scale(1.1);
+        }
+
+        .speak-button, .pause-button {
+            background-color: #4CAF50; /* Yeşil tonlarda bir renk */
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            margin-right: 5px;
+        }
+
+        .speak-button:hover, .pause-button:hover {
+            background-color: #45a049; /* Daha koyu bir yeşil */
+            transform: scale(1.1);
+        }
+
+        .delete-button {
+            background-color: #ff6f61; /* Kırmızı tonlarda bir renk */
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            margin-right: 5px;
+        }
+
+        .delete-button:hover {
+            background-color: #e05244; /* Daha koyu bir kırmızı */
+            transform: scale(1.1);
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            color: #155724;
+            font-size: 1.2em;
+        }
+
+        /* Arka plan efekti */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 10%, transparent 70%);
+            z-index: -1;
+            animation: pulse 10s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 0.8;
+            }
+            100% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hikayeler</h1>
+        <a href="{{ url_for('create_story_form') }}">Yeni Hikaye Oluştur</a>
+        <br><br>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% for story in stories %}
+        <div class="story" data-story-id="{{ story.id }}">
+            <h2>{{ story.title }}</h2>
+            <button class="toggle-button" onclick="toggleContent(this)">Göster</button>
+            <button class="speak-button" onclick="speakContent(this)">Sesli Oku</button>
+            <button class="pause-button" onclick="pauseContent(this)" style="display:none;">Duraklat</button>
+            <button class="delete-button" onclick="confirmDelete(this, {{ story.id }})">Sil</button>
+            <p>{{ story.content }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        let currentUtterance = null;
+        let isPaused = false;
+
+        function toggleContent(button) {
+            const content = button.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling;
+            if (content.style.display === "none" || content.style.display === "") {
+                content.style.display = "block";
+                button.textContent = "Gizle";
+            } else {
+                content.style.display = "none";
+                button.textContent = "Göster";
+            }
+        }
+
+        function speakContent(button) {
+            const content = button.nextElementSibling.nextElementSibling.nextElementSibling;
+            const text = content.textContent;
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            currentUtterance.lang = 'tr-TR'; // Türkçe sesli okuma için
+            window.speechSynthesis.speak(currentUtterance);
+            button.style.display = "none";
+            button.nextElementSibling.style.display = "inline-block";
+            isPaused = false;
+        }
+
+        function pauseContent(button) {
+            if (currentUtterance) {
+                if (window.speechSynthesis.speaking && !isPaused) {
+                    window.speechSynthesis.pause();
+                    isPaused = true;
+                    button.textContent = "Devam Et";
+                } else {
+                    window.speechSynthesis.resume();
+                    isPaused = false;
+                    button.textContent = "Duraklat";
+                }
+            }
+        }
+
+        function confirmDelete(button, storyId) {
+            if (confirm("Bu hikayeyi silmek istediğinizden emin misiniz?")) {
+                fetch(`/delete_story/${storyId}`, {
+                    method: 'DELETE'
+                }).then(response => {
+                    if (response.ok) {
+                        button.parentElement.remove();
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
